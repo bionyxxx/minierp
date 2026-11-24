@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: minierp
+  mvc:
+    apiversion:
+      use:
+        header: X-API-Version
+      supported: [1.0]
+      default: 1.0
+      required: false
+  datasource:
+    url: ${MINIERP_DB_URL:jdbc:postgresql://localhost:5432/minierp}
+    username: ${MINIERP_DB_USER:minierp}
+    password: ${MINIERP_DB_PASSWORD:minierp}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+server:
+  port: 8081
+  error:
+    include-stacktrace: never
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{correlationId:-}]"
+
+minierp:
+  api:
+    # Base URI for RFC 9457 problem "type" links; should point at GET /api/problems/{slug}
+    problem-base-uri: ${MINIERP_PROBLEM_BASE_URI:https://minierp.local/problems/}
+  security:
+    jwt:
+      # Override in production via MINIERP_JWT_SECRET (min. 32 bytes for HS256)
+      secret: ${MINIERP_JWT_SECRET:minierp-dev-only-jwt-secret-key-0123456789abcdef}
+      expiration: 8h
+  approval:
+    # Documents with total >= threshold require ADMIN/MANAGER approval
+    threshold-amount: 10000000
+  seed:
+    enabled: true
