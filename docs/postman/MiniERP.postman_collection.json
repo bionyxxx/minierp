@@ -1,0 +1,2293 @@
+{
+  "info": {
+    "name": "MiniERP API",
+    "description": "Collection MiniERP (Spring Boot 4).\n\n**Cara pakai:**\n1. Jalankan `docker compose up -d` lalu aplikasi (`./mvnw spring-boot:run`), default port 8081.\n2. Jalankan salah satu request di folder **Auth** — token JWT otomatis tersimpan ke variabel `token`.\n3. Request *Create* menyimpan ID hasilnya ke variabel collection (`itemId`, `supplierId`, dst.), jadi bisa dijalankan berurutan atau via Collection Runner.\n\nHeader `X-API-Version: 1.0` dikirim otomatis (opsional di server). Error mengikuti RFC 9457 Problem Details.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.upsert({ key: 'X-API-Version', value: pm.collectionVariables.get('apiVersion') || '1.0' });"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "apiVersion",
+      "value": "1.0"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "itemId",
+      "value": ""
+    },
+    {
+      "key": "warehouseId",
+      "value": ""
+    },
+    {
+      "key": "supplierId",
+      "value": ""
+    },
+    {
+      "key": "customerId",
+      "value": ""
+    },
+    {
+      "key": "purchaseOrderId",
+      "value": ""
+    },
+    {
+      "key": "goodsReceiptId",
+      "value": ""
+    },
+    {
+      "key": "salesOrderId",
+      "value": ""
+    },
+    {
+      "key": "deliveryId",
+      "value": ""
+    },
+    {
+      "key": "problemSlug",
+      "value": "validation-failed"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login as Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/auth/login"
+            },
+            "description": "Login sebagai admin. Token disimpan ke variabel `token` (dipakai semua request).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const b = pm.response.json().data;",
+                  "  pm.collectionVariables.set('token', b.token);",
+                  "  console.log('Logged in as', b.username, '(' + b.role + ') until', b.expiresAt);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as Manager",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/auth/login"
+            },
+            "description": "Login sebagai manager. Token disimpan ke variabel `token` (dipakai semua request).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"manager\",\n  \"password\": \"Manager123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const b = pm.response.json().data;",
+                  "  pm.collectionVariables.set('token', b.token);",
+                  "  console.log('Logged in as', b.username, '(' + b.role + ') until', b.expiresAt);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as Staff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/auth/login"
+            },
+            "description": "Login sebagai staff. Token disimpan ke variabel `token` (dipakai semua request).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"staff\",\n  \"password\": \"Staff123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const b = pm.response.json().data;",
+                  "  pm.collectionVariables.set('token', b.token);",
+                  "  console.log('Logged in as', b.username, '(' + b.role + ') until', b.expiresAt);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me (current user)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ],
+              "raw": "{{baseUrl}}/api/auth/me"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Items",
+      "item": [
+        {
+          "name": "List Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "true",
+                  "disabled": true,
+                  "description": "Filter aktif/non-aktif"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Nomor halaman (mulai 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Ukuran halaman"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,desc",
+                  "disabled": true,
+                  "description": "Contoh: id,desc"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/items?page=0&size=20"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ],
+              "raw": "{{baseUrl}}/api/items"
+            },
+            "description": "Hanya ADMIN/MANAGER. ID hasil disimpan ke `itemId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"SKU-{{$timestamp}}\",\n  \"name\": \"Kertas A4 80gsm\",\n  \"uom\": \"RIM\",\n  \"minStock\": 10,\n  \"purchasePrice\": 45000,\n  \"sellingPrice\": 55000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('itemId', pm.response.json().data.id);",
+                  "  console.log('itemId =', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Item by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ],
+              "raw": "{{baseUrl}}/api/items/{{itemId}}"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ],
+              "raw": "{{baseUrl}}/api/items/{{itemId}}"
+            },
+            "description": "Hanya ADMIN/MANAGER.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"SKU-{{$timestamp}}\",\n  \"name\": \"Kertas A4 80gsm (updated)\",\n  \"uom\": \"RIM\",\n  \"minStock\": 20,\n  \"purchasePrice\": 46000,\n  \"sellingPrice\": 57000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ],
+              "raw": "{{baseUrl}}/api/items/{{itemId}}"
+            },
+            "description": "Hanya ADMIN/MANAGER. Soft delete / nonaktifkan."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Warehouses",
+      "item": [
+        {
+          "name": "List Warehouses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "warehouses"
+              ],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "true",
+                  "disabled": true,
+                  "description": "Filter aktif/non-aktif"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Nomor halaman (mulai 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Ukuran halaman"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,desc",
+                  "disabled": true,
+                  "description": "Contoh: id,desc"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/warehouses?page=0&size=20"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Warehouse",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "warehouses"
+              ],
+              "raw": "{{baseUrl}}/api/warehouses"
+            },
+            "description": "Hanya ADMIN/MANAGER. ID hasil disimpan ke `warehouseId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"WH-{{$timestamp}}\",\n  \"name\": \"Gudang Utama\",\n  \"location\": \"Jakarta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('warehouseId', pm.response.json().data.id);",
+                  "  console.log('warehouseId =', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Warehouse by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "warehouses",
+                "{{warehouseId}}"
+              ],
+              "raw": "{{baseUrl}}/api/warehouses/{{warehouseId}}"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Warehouse",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "warehouses",
+                "{{warehouseId}}"
+              ],
+              "raw": "{{baseUrl}}/api/warehouses/{{warehouseId}}"
+            },
+            "description": "Hanya ADMIN/MANAGER.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"WH-{{$timestamp}}\",\n  \"name\": \"Gudang Utama (updated)\",\n  \"location\": \"Bekasi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Warehouse",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "warehouses",
+                "{{warehouseId}}"
+              ],
+              "raw": "{{baseUrl}}/api/warehouses/{{warehouseId}}"
+            },
+            "description": "Hanya ADMIN/MANAGER. Soft delete / nonaktifkan."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Suppliers",
+      "item": [
+        {
+          "name": "List Suppliers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "suppliers"
+              ],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "true",
+                  "disabled": true,
+                  "description": "Filter aktif/non-aktif"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Nomor halaman (mulai 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Ukuran halaman"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,desc",
+                  "disabled": true,
+                  "description": "Contoh: id,desc"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/suppliers?page=0&size=20"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Supplier",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "suppliers"
+              ],
+              "raw": "{{baseUrl}}/api/suppliers"
+            },
+            "description": "Hanya ADMIN/MANAGER. ID hasil disimpan ke `supplierId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SUP-{{$timestamp}}\",\n  \"name\": \"PT Sumber Makmur\",\n  \"address\": \"Jl. Sudirman No. 1, Jakarta\",\n  \"phone\": \"021-5550001\",\n  \"email\": \"sales@sumbermakmur.example\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('supplierId', pm.response.json().data.id);",
+                  "  console.log('supplierId =', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Supplier by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "suppliers",
+                "{{supplierId}}"
+              ],
+              "raw": "{{baseUrl}}/api/suppliers/{{supplierId}}"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Supplier",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "suppliers",
+                "{{supplierId}}"
+              ],
+              "raw": "{{baseUrl}}/api/suppliers/{{supplierId}}"
+            },
+            "description": "Hanya ADMIN/MANAGER.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SUP-{{$timestamp}}\",\n  \"name\": \"PT Sumber Makmur Jaya\",\n  \"address\": \"Jl. Sudirman No. 2, Jakarta\",\n  \"phone\": \"021-5550002\",\n  \"email\": \"sales@sumbermakmur.example\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Supplier",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "suppliers",
+                "{{supplierId}}"
+              ],
+              "raw": "{{baseUrl}}/api/suppliers/{{supplierId}}"
+            },
+            "description": "Hanya ADMIN/MANAGER. Soft delete / nonaktifkan."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "List Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "true",
+                  "disabled": true,
+                  "description": "Filter aktif/non-aktif"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Nomor halaman (mulai 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Ukuran halaman"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,desc",
+                  "disabled": true,
+                  "description": "Contoh: id,desc"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/customers?page=0&size=20"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ],
+              "raw": "{{baseUrl}}/api/customers"
+            },
+            "description": "Hanya ADMIN/MANAGER. ID hasil disimpan ke `customerId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"CUS-{{$timestamp}}\",\n  \"name\": \"CV Maju Bersama\",\n  \"address\": \"Jl. Asia Afrika No. 10, Bandung\",\n  \"phone\": \"022-4440001\",\n  \"email\": \"purchasing@majubersama.example\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('customerId', pm.response.json().data.id);",
+                  "  console.log('customerId =', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Customer by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{customerId}}"
+              ],
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{customerId}}"
+              ],
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}"
+            },
+            "description": "Hanya ADMIN/MANAGER.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"CUS-{{$timestamp}}\",\n  \"name\": \"CV Maju Bersama Abadi\",\n  \"address\": \"Jl. Asia Afrika No. 12, Bandung\",\n  \"phone\": \"022-4440002\",\n  \"email\": \"purchasing@majubersama.example\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Customer",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{customerId}}"
+              ],
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}"
+            },
+            "description": "Hanya ADMIN/MANAGER. Soft delete / nonaktifkan."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Purchasing",
+      "item": [
+        {
+          "name": "Purchase Orders",
+          "item": [
+            {
+              "name": "Create Purchase Order",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "purchase-orders"
+                  ],
+                  "raw": "{{baseUrl}}/api/purchase-orders"
+                },
+                "description": "ID hasil disimpan ke `purchaseOrderId`. Dokumen dengan total >= threshold (default 10.000.000) berstatus PENDING dan perlu approval ADMIN/MANAGER.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"supplierId\": \"{{supplierId}}\",\n  \"orderDate\": \"2026-11-25\",\n  \"notes\": \"PO kertas bulanan\",\n  \"lines\": [\n    {\n      \"itemId\": \"{{itemId}}\",\n      \"qty\": 100,\n      \"unitPrice\": 15000\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "if (pm.response.code === 201) {",
+                      "  pm.collectionVariables.set('purchaseOrderId', pm.response.json().data.id);",
+                      "  console.log('purchaseOrderId =', pm.response.json().data.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "List Purchase Orders",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "purchase-orders"
+                  ],
+                  "query": [
+                    {
+                      "key": "supplierId",
+                      "value": "{{supplierId}}",
+                      "disabled": true,
+                      "description": "Filter supplier"
+                    },
+                    {
+                      "key": "status",
+                      "value": "PENDING",
+                      "disabled": true,
+                      "description": "PENDING | APPROVED | REJECTED"
+                    },
+                    {
+                      "key": "page",
+                      "value": "0",
+                      "disabled": false,
+                      "description": "Nomor halaman (mulai 0)"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20",
+                      "disabled": false,
+                      "description": "Ukuran halaman"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "id,desc",
+                      "disabled": true,
+                      "description": "Contoh: id,desc"
+                    }
+                  ],
+                  "raw": "{{baseUrl}}/api/purchase-orders?page=0&size=20"
+                },
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Purchase Order by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "purchase-orders",
+                    "{{purchaseOrderId}}"
+                  ],
+                  "raw": "{{baseUrl}}/api/purchase-orders/{{purchaseOrderId}}"
+                },
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Approve Purchase Order",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "purchase-orders",
+                    "{{purchaseOrderId}}",
+                    "approve"
+                  ],
+                  "raw": "{{baseUrl}}/api/purchase-orders/{{purchaseOrderId}}/approve"
+                },
+                "description": "Butuh role ADMIN/MANAGER (aturan di ApprovalPolicy)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Reject Purchase Order",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "purchase-orders",
+                    "{{purchaseOrderId}}",
+                    "reject"
+                  ],
+                  "raw": "{{baseUrl}}/api/purchase-orders/{{purchaseOrderId}}/reject"
+                },
+                "description": "Butuh role ADMIN/MANAGER.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Harga tidak sesuai\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Goods Receipts",
+          "item": [
+            {
+              "name": "Create Goods Receipt",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "goods-receipts"
+                  ],
+                  "raw": "{{baseUrl}}/api/goods-receipts"
+                },
+                "description": "ID hasil disimpan ke `goodsReceiptId`. Dokumen dengan total >= threshold (default 10.000.000) berstatus PENDING dan perlu approval ADMIN/MANAGER.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"purchaseOrderId\": \"{{purchaseOrderId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"receiptDate\": \"2026-11-25\",\n  \"notes\": \"Penerimaan PO\",\n  \"lines\": [\n    {\n      \"itemId\": \"{{itemId}}\",\n      \"qty\": 100\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "if (pm.response.code === 201) {",
+                      "  pm.collectionVariables.set('goodsReceiptId', pm.response.json().data.id);",
+                      "  console.log('goodsReceiptId =', pm.response.json().data.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "List Goods Receipts",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "goods-receipts"
+                  ],
+                  "query": [
+                    {
+                      "key": "purchaseOrderId",
+                      "value": "{{purchaseOrderId}}",
+                      "disabled": true,
+                      "description": "Filter PO"
+                    },
+                    {
+                      "key": "status",
+                      "value": "PENDING",
+                      "disabled": true,
+                      "description": "PENDING | APPROVED | REJECTED"
+                    },
+                    {
+                      "key": "page",
+                      "value": "0",
+                      "disabled": false,
+                      "description": "Nomor halaman (mulai 0)"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20",
+                      "disabled": false,
+                      "description": "Ukuran halaman"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "id,desc",
+                      "disabled": true,
+                      "description": "Contoh: id,desc"
+                    }
+                  ],
+                  "raw": "{{baseUrl}}/api/goods-receipts?page=0&size=20"
+                },
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Goods Receipt by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "goods-receipts",
+                    "{{goodsReceiptId}}"
+                  ],
+                  "raw": "{{baseUrl}}/api/goods-receipts/{{goodsReceiptId}}"
+                },
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Approve Goods Receipt",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "goods-receipts",
+                    "{{goodsReceiptId}}",
+                    "approve"
+                  ],
+                  "raw": "{{baseUrl}}/api/goods-receipts/{{goodsReceiptId}}/approve"
+                },
+                "description": "Butuh role ADMIN/MANAGER (aturan di ApprovalPolicy)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Reject Goods Receipt",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "goods-receipts",
+                    "{{goodsReceiptId}}",
+                    "reject"
+                  ],
+                  "raw": "{{baseUrl}}/api/goods-receipts/{{goodsReceiptId}}/reject"
+                },
+                "description": "Butuh role ADMIN/MANAGER.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Harga tidak sesuai\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sales",
+      "item": [
+        {
+          "name": "Sales Orders",
+          "item": [
+            {
+              "name": "Create Sales Order",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "sales-orders"
+                  ],
+                  "raw": "{{baseUrl}}/api/sales-orders"
+                },
+                "description": "ID hasil disimpan ke `salesOrderId`. Dokumen dengan total >= threshold (default 10.000.000) berstatus PENDING dan perlu approval ADMIN/MANAGER.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"orderDate\": \"2026-11-25\",\n  \"notes\": \"SO pelanggan\",\n  \"lines\": [\n    {\n      \"itemId\": \"{{itemId}}\",\n      \"qty\": 10,\n      \"unitPrice\": 55000\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "if (pm.response.code === 201) {",
+                      "  pm.collectionVariables.set('salesOrderId', pm.response.json().data.id);",
+                      "  console.log('salesOrderId =', pm.response.json().data.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "List Sales Orders",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "sales-orders"
+                  ],
+                  "query": [
+                    {
+                      "key": "customerId",
+                      "value": "{{customerId}}",
+                      "disabled": true,
+                      "description": "Filter customer"
+                    },
+                    {
+                      "key": "status",
+                      "value": "PENDING",
+                      "disabled": true,
+                      "description": "PENDING | APPROVED | REJECTED"
+                    },
+                    {
+                      "key": "page",
+                      "value": "0",
+                      "disabled": false,
+                      "description": "Nomor halaman (mulai 0)"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20",
+                      "disabled": false,
+                      "description": "Ukuran halaman"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "id,desc",
+                      "disabled": true,
+                      "description": "Contoh: id,desc"
+                    }
+                  ],
+                  "raw": "{{baseUrl}}/api/sales-orders?page=0&size=20"
+                },
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Sales Order by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "sales-orders",
+                    "{{salesOrderId}}"
+                  ],
+                  "raw": "{{baseUrl}}/api/sales-orders/{{salesOrderId}}"
+                },
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Approve Sales Order",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "sales-orders",
+                    "{{salesOrderId}}",
+                    "approve"
+                  ],
+                  "raw": "{{baseUrl}}/api/sales-orders/{{salesOrderId}}/approve"
+                },
+                "description": "Butuh role ADMIN/MANAGER (aturan di ApprovalPolicy)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Reject Sales Order",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "sales-orders",
+                    "{{salesOrderId}}",
+                    "reject"
+                  ],
+                  "raw": "{{baseUrl}}/api/sales-orders/{{salesOrderId}}/reject"
+                },
+                "description": "Butuh role ADMIN/MANAGER.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Harga tidak sesuai\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Deliveries",
+          "item": [
+            {
+              "name": "Create Deliverie",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "deliveries"
+                  ],
+                  "raw": "{{baseUrl}}/api/deliveries"
+                },
+                "description": "ID hasil disimpan ke `deliveryId`. Dokumen dengan total >= threshold (default 10.000.000) berstatus PENDING dan perlu approval ADMIN/MANAGER.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"salesOrderId\": \"{{salesOrderId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"deliveryDate\": \"2026-11-25\",\n  \"notes\": \"Pengiriman SO\",\n  \"lines\": [\n    {\n      \"itemId\": \"{{itemId}}\",\n      \"qty\": 10\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "if (pm.response.code === 201) {",
+                      "  pm.collectionVariables.set('deliveryId', pm.response.json().data.id);",
+                      "  console.log('deliveryId =', pm.response.json().data.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "List Deliveries",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "deliveries"
+                  ],
+                  "query": [
+                    {
+                      "key": "salesOrderId",
+                      "value": "{{salesOrderId}}",
+                      "disabled": true,
+                      "description": "Filter SO"
+                    },
+                    {
+                      "key": "status",
+                      "value": "PENDING",
+                      "disabled": true,
+                      "description": "PENDING | APPROVED | REJECTED"
+                    },
+                    {
+                      "key": "page",
+                      "value": "0",
+                      "disabled": false,
+                      "description": "Nomor halaman (mulai 0)"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20",
+                      "disabled": false,
+                      "description": "Ukuran halaman"
+                    },
+                    {
+                      "key": "sort",
+                      "value": "id,desc",
+                      "disabled": true,
+                      "description": "Contoh: id,desc"
+                    }
+                  ],
+                  "raw": "{{baseUrl}}/api/deliveries?page=0&size=20"
+                },
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Deliverie by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "deliveries",
+                    "{{deliveryId}}"
+                  ],
+                  "raw": "{{baseUrl}}/api/deliveries/{{deliveryId}}"
+                },
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Approve Deliverie",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "deliveries",
+                    "{{deliveryId}}",
+                    "approve"
+                  ],
+                  "raw": "{{baseUrl}}/api/deliveries/{{deliveryId}}/approve"
+                },
+                "description": "Butuh role ADMIN/MANAGER (aturan di ApprovalPolicy)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Reject Deliverie",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "deliveries",
+                    "{{deliveryId}}",
+                    "reject"
+                  ],
+                  "raw": "{{baseUrl}}/api/deliveries/{{deliveryId}}/reject"
+                },
+                "description": "Butuh role ADMIN/MANAGER.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Harga tidak sesuai\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "List stock",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stock"
+              ],
+              "query": [
+                {
+                  "key": "itemId",
+                  "value": "{{itemId}}",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "warehouseId",
+                  "value": "{{warehouseId}}",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Nomor halaman (mulai 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Ukuran halaman"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,desc",
+                  "disabled": true,
+                  "description": "Contoh: id,desc"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/stock?page=0&size=20"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List stock movements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stock",
+                "movements"
+              ],
+              "query": [
+                {
+                  "key": "itemId",
+                  "value": "{{itemId}}",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "warehouseId",
+                  "value": "{{warehouseId}}",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "disabled": false,
+                  "description": "Nomor halaman (mulai 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "disabled": false,
+                  "description": "Ukuran halaman"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,desc",
+                  "disabled": true,
+                  "description": "Contoh: id,desc"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/stock/movements?page=0&size=20"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Stock by item",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stock",
+                "{{itemId}}"
+              ],
+              "raw": "{{baseUrl}}/api/stock/{{itemId}}"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Problem catalog",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "problems"
+              ],
+              "raw": "{{baseUrl}}/api/problems"
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Problem by slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "problems",
+                "{{problemSlug}}"
+              ],
+              "raw": "{{baseUrl}}/api/problems/{{problemSlug}}"
+            },
+            "description": "Slug: not-found, business-rule-violation, invalid-state, duplicate-resource, validation-failed, ...",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ],
+              "raw": "{{baseUrl}}/actuator/health"
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "OpenAPI spec",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v3",
+                "api-docs"
+              ],
+              "raw": "{{baseUrl}}/v3/api-docs"
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

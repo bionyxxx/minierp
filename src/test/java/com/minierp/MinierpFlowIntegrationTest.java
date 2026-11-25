@@ -1,6 +1,7 @@
 package com.minierp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -54,7 +55,7 @@ class MinierpFlowIntegrationTest {
 		ResponseEntity<String> response = rest.postForEntity("/api/auth/login",
 				Map.of("username", username, "password", password), String.class);
 		assertEquals(HttpStatus.OK, response.getStatusCode(), "login " + username);
-		return read(response.getBody()).get("token").asString();
+		return data(response.getBody()).get("token").asString();
 	}
 
 	private HttpHeaders auth(String token) {
@@ -66,6 +67,22 @@ class MinierpFlowIntegrationTest {
 
 	private JsonNode read(String body) {
 		return mapper.readTree(body);
+	}
+
+	/** Payload of a successful {@code ApiResponse} envelope. */
+	private JsonNode data(String body) {
+		JsonNode envelope = read(body);
+		assertTrue(envelope.get("success").asBoolean(), body);
+		assertNotNull(envelope.get("meta").get("timestamp"), body);
+		return envelope.get("data");
+	}
+
+	/** Problem fields of a failed {@code ApiResponse} envelope. */
+	private JsonNode error(String body) {
+		JsonNode envelope = read(body);
+		assertFalse(envelope.get("success").asBoolean(), body);
+		assertTrue(envelope.get("data").isNull(), body);
+		return envelope.get("error");
 	}
 
 	private ResponseEntity<String> post(String token, String url, Object body) {
@@ -87,7 +104,7 @@ class MinierpFlowIntegrationTest {
 				"sellingPrice", "1500");
 		ResponseEntity<String> response = post(token, "/api/items", body);
 		assertEquals(HttpStatus.CREATED, response.getStatusCode(), "create item");
-		return read(response.getBody()).get("id").asLong();
+		return data(response.getBody()).get("id").asLong();
 	}
 
 	private long createSupplier(String token) {
@@ -95,7 +112,7 @@ class MinierpFlowIntegrationTest {
 		ResponseEntity<String> response = post(token, "/api/suppliers",
 				Map.of("code", "SUP-" + n, "name", "Supplier " + n));
 		assertEquals(HttpStatus.CREATED, response.getStatusCode(), "create supplier");
-		return read(response.getBody()).get("id").asLong();
+		return data(response.getBody()).get("id").asLong();
 	}
 
 	private long createCustomer(String token) {
@@ -103,7 +120,7 @@ class MinierpFlowIntegrationTest {
 		ResponseEntity<String> response = post(token, "/api/customers",
 				Map.of("code", "CUS-" + n, "name", "Customer " + n));
 		assertEquals(HttpStatus.CREATED, response.getStatusCode(), "create customer");
-		return read(response.getBody()).get("id").asLong();
+		return data(response.getBody()).get("id").asLong();
 	}
 
 	private long createWarehouse(String token) {
@@ -111,7 +128,7 @@ class MinierpFlowIntegrationTest {
 		ResponseEntity<String> response = post(token, "/api/warehouses",
 				Map.of("code", "WH-" + n, "name", "Gudang " + n, "location", "Bandung"));
 		assertEquals(HttpStatus.CREATED, response.getStatusCode(), "create warehouse");
-		return read(response.getBody()).get("id").asLong();
+		return data(response.getBody()).get("id").asLong();
 	}
 
 	private Map<String, Object> line(long itemId, String qty, String unitPrice) {
@@ -130,7 +147,7 @@ class MinierpFlowIntegrationTest {
 				"lines", lines);
 		ResponseEntity<String> response = post(token, "/api/purchase-orders", body);
 		assertEquals(HttpStatus.CREATED, response.getStatusCode(), "create PO");
-		return read(response.getBody()).get("id").asLong();
+		return data(response.getBody()).get("id").asLong();
 	}
 
 	private void approve(String token, String url) {
@@ -151,7 +168,7 @@ class MinierpFlowIntegrationTest {
 				"lines", lines);
 		ResponseEntity<String> response = post(token, "/api/goods-receipts", body);
 		assertEquals(HttpStatus.CREATED, response.getStatusCode(), "create GRN");
-		return read(response.getBody()).get("id").asLong();
+		return data(response.getBody()).get("id").asLong();
 	}
 
 	private long createSo(String token, long customerId, List<Map<String, Object>> lines) {
@@ -161,7 +178,7 @@ class MinierpFlowIntegrationTest {
 				"lines", lines);
 		ResponseEntity<String> response = post(token, "/api/sales-orders", body);
 		assertEquals(HttpStatus.CREATED, response.getStatusCode(), "create SO");
-		return read(response.getBody()).get("id").asLong();
+		return data(response.getBody()).get("id").asLong();
 	}
 
 	private long createDelivery(String token, long soId, long warehouseId, List<Map<String, Object>> lines) {
@@ -172,7 +189,7 @@ class MinierpFlowIntegrationTest {
 		body.put("lines", lines);
 		ResponseEntity<String> response = post(token, "/api/deliveries", body);
 		assertEquals(HttpStatus.CREATED, response.getStatusCode(), "create delivery");
-		return read(response.getBody()).get("id").asLong();
+		return data(response.getBody()).get("id").asLong();
 	}
 
 	private Map<String, Object> qtyLine(long itemId, String qty) {
@@ -182,7 +199,7 @@ class MinierpFlowIntegrationTest {
 	private BigDecimal stockQty(String token, long itemId) {
 		ResponseEntity<String> response = get(token, "/api/stock/" + itemId);
 		assertEquals(HttpStatus.OK, response.getStatusCode(), "stock query");
-		return new BigDecimal(read(response.getBody()).get("totalQty").asString());
+		return new BigDecimal(data(response.getBody()).get("totalQty").asString());
 	}
 
 	// ---------- auth & roles ----------
@@ -192,14 +209,14 @@ class MinierpFlowIntegrationTest {
 		String token = login("staff", "Staff123!");
 		ResponseEntity<String> me = get(token, "/api/auth/me");
 		assertEquals(HttpStatus.OK, me.getStatusCode());
-		assertEquals("STAFF", read(me.getBody()).get("role").asString());
+		assertEquals("STAFF", data(me.getBody()).get("role").asString());
 	}
 
 	@Test
 	void unauthenticatedRequestsAreRejected() {
 		ResponseEntity<String> response = rest.getForEntity("/api/items", String.class);
 		assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-		JsonNode body = read(response.getBody());
+		JsonNode body = error(response.getBody());
 		assertEquals("https://minierp.local/problems/unauthorized", body.get("type").asString());
 		assertEquals("/api/items", body.get("instance").asString());
 	}
@@ -242,7 +259,7 @@ class MinierpFlowIntegrationTest {
 		// stock card records the movement
 		ResponseEntity<String> movements = get(staff, "/api/stock/movements?itemId=" + itemId);
 		assertEquals(HttpStatus.OK, movements.getStatusCode());
-		JsonNode entries = read(movements.getBody()).get("content");
+		JsonNode entries = data(movements.getBody());
 		assertTrue(entries.size() >= 1);
 		assertEquals("IN", entries.get(0).get("movementType").asString());
 		assertEquals("GRN", entries.get(0).get("refType").asString());
@@ -351,7 +368,7 @@ class MinierpFlowIntegrationTest {
 		assertEquals(0, stockQty(staff, itemId).compareTo(new BigDecimal("6")));
 
 		ResponseEntity<String> movements = get(staff, "/api/stock/movements?itemId=" + itemId);
-		JsonNode entries = read(movements.getBody()).get("content");
+		JsonNode entries = data(movements.getBody());
 		assertEquals("OUT", entries.get(0).get("movementType").asString());
 		assertEquals("DELIVERY", entries.get(0).get("refType").asString());
 	}
@@ -463,12 +480,14 @@ class MinierpFlowIntegrationTest {
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		JsonNode body = read(response.getBody());
 		assertTrue(itemId > 0);
-		assertTrue(body.get("content").isArray());
-		assertTrue(body.get("content").size() <= 1);
-		assertEquals(0, body.get("page").asInt());
-		assertEquals(1, body.get("size").asInt());
-		assertTrue(body.get("totalElements").asLong() >= 1);
-		assertTrue(body.get("totalPages").asInt() >= 1);
+		assertTrue(body.get("success").asBoolean());
+		assertTrue(body.get("data").isArray());
+		assertTrue(body.get("data").size() <= 1);
+		JsonNode pagination = body.get("meta").get("pagination");
+		assertEquals(0, pagination.get("page").asInt());
+		assertEquals(1, pagination.get("size").asInt());
+		assertTrue(pagination.get("totalElements").asLong() >= 1);
+		assertTrue(pagination.get("totalPages").asInt() >= 1);
 	}
 
 	@Test
@@ -476,7 +495,7 @@ class MinierpFlowIntegrationTest {
 		String admin = login("admin", "Admin123!");
 		ResponseEntity<String> response = get(admin, "/api/items?size=10000");
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals(PaginationDefaults.MAX_SIZE, read(response.getBody()).get("size").asInt());
+		assertEquals(PaginationDefaults.MAX_SIZE, read(response.getBody()).get("meta").get("pagination").get("size").asInt());
 	}
 
 	@Test
@@ -484,7 +503,7 @@ class MinierpFlowIntegrationTest {
 		String admin = login("admin", "Admin123!");
 		ResponseEntity<String> response = get(admin, "/api/items?sort=hacker,asc");
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-		JsonNode body = read(response.getBody());
+		JsonNode body = error(response.getBody());
 		assertEquals("https://minierp.local/problems/invalid-sort", body.get("type").asString());
 		assertEquals("/api/items", body.get("instance").asString());
 	}
@@ -494,8 +513,8 @@ class MinierpFlowIntegrationTest {
 		String admin = login("admin", "Admin123!");
 		ResponseEntity<String> response = post(admin, "/api/items", Map.of("name", "Tanpa SKU"));
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-		assertTrue(response.getHeaders().getContentType().toString().contains("problem"));
-		JsonNode body = read(response.getBody());
+		assertTrue(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON));
+		JsonNode body = error(response.getBody());
 		assertEquals("https://minierp.local/problems/validation-failed", body.get("type").asString());
 		assertEquals("/api/items", body.get("instance").asString());
 		JsonNode errors = body.get("errors");
@@ -513,7 +532,7 @@ class MinierpFlowIntegrationTest {
 				new HttpEntity<>("{not-json", auth(admin)), String.class);
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 		assertEquals("https://minierp.local/problems/malformed-request",
-				read(response.getBody()).get("type").asString());
+				error(response.getBody()).get("type").asString());
 	}
 
 	@Test
@@ -523,7 +542,7 @@ class MinierpFlowIntegrationTest {
 				new HttpEntity<>(Map.of(), auth(admin)), String.class);
 		assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
 		assertEquals("https://minierp.local/problems/method-not-allowed",
-				read(response.getBody()).get("type").asString());
+				error(response.getBody()).get("type").asString());
 	}
 
 	@Test
@@ -531,7 +550,7 @@ class MinierpFlowIntegrationTest {
 		String admin = login("admin", "Admin123!");
 		ResponseEntity<String> response = get(admin, "/api/does-not-exist");
 		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-		JsonNode body = read(response.getBody());
+		JsonNode body = error(response.getBody());
 		assertEquals("https://minierp.local/problems/not-found", body.get("type").asString());
 		assertEquals("/api/does-not-exist", body.get("instance").asString());
 	}
@@ -546,7 +565,7 @@ class MinierpFlowIntegrationTest {
 		ResponseEntity<String> response = rest.exchange("/api/items", HttpMethod.GET,
 				new HttpEntity<>(headers), String.class);
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-		JsonNode body = read(response.getBody());
+		JsonNode body = error(response.getBody());
 		assertEquals("https://minierp.local/problems/invalid-api-version", body.get("type").asString());
 		assertTrue(body.get("detail").asString().contains("2.0"));
 	}
@@ -568,7 +587,7 @@ class MinierpFlowIntegrationTest {
 	void problemCatalogIsPublicAndComplete() {
 		ResponseEntity<String> response = rest.getForEntity("/api/problems", String.class);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		JsonNode catalog = read(response.getBody());
+		JsonNode catalog = data(response.getBody());
 		assertTrue(catalog.isArray());
 		assertEquals(ProblemCatalog.all().size(), catalog.size());
 		List<String> slugs = new ArrayList<>();
@@ -583,13 +602,13 @@ class MinierpFlowIntegrationTest {
 	void problemCatalogReturnsDescriptorAnd404ForUnknownSlug() {
 		ResponseEntity<String> response = rest.getForEntity("/api/problems/not-found", String.class);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		JsonNode body = read(response.getBody());
+		JsonNode body = data(response.getBody());
 		assertEquals("not-found", body.get("slug").asString());
 		assertEquals(404, body.get("status").asInt());
 
 		ResponseEntity<String> unknown = rest.getForEntity("/api/problems/unknown-slug", String.class);
 		assertEquals(HttpStatus.NOT_FOUND, unknown.getStatusCode());
-		assertEquals("https://minierp.local/problems/not-found", read(unknown.getBody()).get("type").asString());
+		assertEquals("https://minierp.local/problems/not-found", error(unknown.getBody()).get("type").asString());
 	}
 
 	// ---------- correlation id ----------
@@ -608,7 +627,7 @@ class MinierpFlowIntegrationTest {
 				new HttpEntity<>(headers), String.class);
 		assertEquals(HttpStatus.NOT_FOUND, error.getStatusCode());
 		assertEquals("test-corr-1", error.getHeaders().getFirst("X-Correlation-Id"));
-		assertEquals("test-corr-1", read(error.getBody()).get("correlationId").asString());
+		assertEquals("test-corr-1", read(error.getBody()).get("meta").get("correlationId").asString());
 	}
 
 	@Test
@@ -630,7 +649,7 @@ class MinierpFlowIntegrationTest {
 		long supplierId = createSupplier(admin);
 		long poId = createPo(staff, supplierId, List.of(line(itemId, "1", "1000")));
 
-		JsonNode body = read(get(staff, "/api/purchase-orders/" + poId).getBody());
+		JsonNode body = data(get(staff, "/api/purchase-orders/" + poId).getBody());
 		assertEquals("2026-11-23", body.get("orderDate").asString());
 		assertTrue(body.get("createdAt").asString().matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z"),
 				body.get("createdAt").asString());

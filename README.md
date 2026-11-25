@@ -157,9 +157,48 @@ src/main/resources/db/migration/   # skema Flyway (V1..V7)
 Batas layer divalidasi ArchUnit setiap `./mvnw verify`: domain bebas framework,
 application tidak boleh menyentuh infrastructure, dan web tidak boleh menyentuh persistence.
 
+## Response envelope
+
+Semua response JSON (sukses maupun error) dibungkus dengan format yang sama
+(`application/json`), dipasang otomatis oleh `ApiResponseBodyAdvice` — controller
+cukup mengembalikan DTO biasa:
+
+```json
+{
+  "success": true,
+  "data": { "id": 1, "sku": "SKU-1" },
+  "meta": {
+    "timestamp": "2026-11-25T10:00:00Z",
+    "correlationId": "0b6c…",
+    "pagination": { "page": 0, "size": 20, "totalElements": 42, "totalPages": 3 }
+  }
+}
+```
+
+- `data` — payload; untuk list berupa array, `null` saat error.
+- `meta.pagination` — hanya ada di endpoint list yang ber-pagination.
+- `204 No Content` (DELETE) tetap tanpa body.
+
 ## Error contract
 
-Semua error memakai RFC 9457 Problem Detail (`application/problem+json`):
+Error memakai envelope yang sama dengan `success: false` dan field `error` berisi
+member RFC 9457 Problem Detail (`type`, `title`, `status`, `detail`, `instance`,
+plus ekstensi seperti `errors` untuk validasi):
+
+```json
+{
+  "success": false,
+  "data": null,
+  "meta": { "timestamp": "2026-11-25T10:00:00Z", "correlationId": "0b6c…" },
+  "error": {
+    "type": "https://minierp.local/problems/not-found",
+    "title": "Resource tidak ditemukan",
+    "status": 404,
+    "detail": "Item dengan id 99 tidak ditemukan",
+    "instance": "/api/items/99"
+  }
+}
+```
 
 | Status | Kondisi |
 |--------|---------|

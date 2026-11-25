@@ -10,15 +10,16 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
-import com.minierp.infrastructure.security.CorrelationIdFilter;
+import com.minierp.infrastructure.web.support.ApiResponses;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * Returns RFC 9457 problem details for security failures (401/403)
- * instead of an empty response body. Covers exceptions raised inside the
+ * Returns the {@code ApiResponse} failure envelope (RFC 9457 problem fields
+ * under {@code error}) for security failures (401/403) instead of an empty
+ * response body. Covers exceptions raised inside the
  * security filter chain; dispatcher-level failures are handled by
  * {@link GlobalExceptionHandler}.
  */
@@ -53,13 +54,9 @@ public class SecurityProblemDetailHandler implements AuthenticationEntryPoint, A
             problemDetail.setType(problemTypeUris.uri(slug));
             problemDetail.setTitle(title);
             problemDetail.setInstance(URI.create(request.getRequestURI()));
-            String correlationId = CorrelationIdFilter.current();
-            if (correlationId != null) {
-                problemDetail.setProperty("correlationId", correlationId);
-            }
             response.setStatus(status.value());
-            response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
-            objectMapper.writeValue(response.getOutputStream(), problemDetail);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            objectMapper.writeValue(response.getOutputStream(), ApiResponses.failure(problemDetail));
         }
         catch (Exception ex) {
             response.setStatus(status.value());
