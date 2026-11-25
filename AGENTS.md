@@ -9,6 +9,10 @@
 
 ## Project notes (MiniERP)
 
+- Hexagonal architecture: `domain/` (pure Java, no Spring/JPA/Jakarta), `application/usecase/`
+  (Spring `@Service` use cases implementing `domain/port/in`), `infrastructure/` (JPA entities,
+  mappers, repository adapters, web controllers, security, config). Use cases depend on ports
+  only; `ArchitectureTest` (ArchUnit) enforces the layer boundaries in `./mvnw verify`.
 - Local JDK: `~/.jdks/openjdk-27` — prefix builds with `JAVA_HOME=~/.jdks/openjdk-27`.
   Target bytecode stays at Java 21 (`<java.version>21</java.version>`).
 - Spring Boot parent version is `4.2.0` (the Initializr id `4.2.0.RELEASE` maps to the
@@ -19,8 +23,9 @@
 - Security is stateless JWT (HS256, `spring-boot-starter-oauth2-resource-server`).
   Login issues tokens; authority comes from the `role` claim.
 - Seed users (dev): admin/Admin123!, manager/Manager123!, staff/Staff123!.
-- Business rules are enforced in services (`ApprovalPolicy`, `StockService`), not in
-  controllers or security rules. See README.md for the domain workflow.
+- Business rules are enforced in domain/application services (`domain/service/ApprovalPolicy`,
+  `application/usecase/StockService`), not in controllers or security rules. See README.md for
+  the domain workflow.
 - Hibernate snapshots entity state at persist time: always set every field (including
   document numbers) BEFORE `repository.save()`. Document numbers come from dedicated
   number sequences (`*NumberRepository#nextNumberValue()`), never from post-save updates.
@@ -35,6 +40,8 @@
 ## Engineering Rules
 
 - Inspect neighboring code and the dependency tree before choosing an API or starter.
+- Keep `domain/` framework-free; use cases depend on `domain/port/*` interfaces only, and
+  persistence goes through `infrastructure/persistence` adapters.
 - Keep controllers as adapters and transactions in application services.
 - Use DTOs; do not expose Hibernate entities as external contracts.
 - Use `tools.jackson` APIs for Jackson customization.

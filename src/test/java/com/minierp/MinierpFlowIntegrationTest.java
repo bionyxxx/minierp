@@ -24,9 +24,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import com.minierp.common.PaginationDefaults;
-import com.minierp.common.ProblemTypes;
-import com.minierp.docs.ProblemCatalog;
+import com.minierp.application.support.PaginationDefaults;
+import com.minierp.infrastructure.web.error.ProblemTypes;
+import com.minierp.infrastructure.docs.ProblemCatalog;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;

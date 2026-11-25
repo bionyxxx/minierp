@@ -125,19 +125,37 @@ Aturan utama:
 
 ## Struktur project
 
+Arsitektur **hexagonal (ports & adapters)**: domain murni tanpa framework, use case
+di application, dan semua detail teknis (JPA, HTTP, security) di infrastructure.
+
 ```
 src/main/java/com/minierp/
-├── auth/        # login + penerbitan JWT
-├── config/      # security, properties, seed data
-├── common/      # exception, base dokumen, ProblemDetail handler
-├── approval/    # ApprovalPolicy (threshold approval)
-├── user/        # user + role
-├── item/ supplier/ customer/ warehouse/   # master data
-├── inventory/   # stok, stock movement, StockService
-├── purchase/    # PurchaseOrder, GoodsReceipt
-└── sales/       # SalesOrder, Delivery
-src/main/resources/db/migration/           # skema Flyway (V1..V5)
+├── MinierpApplication.java   # bootstrap saja
+├── domain/                   # PURE Java — tanpa Spring/JPA/Jakarta
+│   ├── model/                # aggregate, value object, enum
+│   │   ├── item/ customer/ supplier/ warehouse/ inventory/
+│   │   ├── purchase/ sales/ user/
+│   │   └── shared/           # BaseApprovalDocument, DocumentStatus, AuthenticatedUser,
+│   │                         # PageQuery/PageResult, exception domain
+│   ├── port/in/              # interface use case (ditawarkan aplikasi)
+│   ├── port/out/             # port driven (repository, StockPort, DocumentNumberPort, …)
+│   └── service/              # ApprovalPolicy (threshold)
+├── application/usecase/      # @Service @Transactional, implementasi port/in
+└── infrastructure/
+    ├── persistence/          # entity JPA, mapper domain⇄entity, adapter repository
+    ├── web/                  # controller + dto per modul, error/ (RFC 9457), support/
+    ├── security/             # JwtService, CurrentUser, JpaUserDetailsService, filter
+    ├── config/               # MinierpProperties, Jackson, SecurityConfig, DataSeeder
+    └── docs/                 # katalog Problem Detail
+src/test/java/com/minierp/
+├── application/usecase/      # unit test use case (mock port)
+├── architecture/             # ArchitectureTest (ArchUnit) — batas layer dijaga otomatis
+└── MinierpFlowIntegrationTest  # end-to-end Testcontainers
+src/main/resources/db/migration/   # skema Flyway (V1..V7)
 ```
+
+Batas layer divalidasi ArchUnit setiap `./mvnw verify`: domain bebas framework,
+application tidak boleh menyentuh infrastructure, dan web tidak boleh menyentuh persistence.
 
 ## Error contract
 
